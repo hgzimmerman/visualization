@@ -2,6 +2,8 @@ use nannou::prelude::*;
 use nannou::audio::buffer::Buffer;
 use std::sync::{Mutex, Arc};
 
+mod ring_buffer;
+
 fn main() {
     nannou::app(model)
         .update(regular)
@@ -13,7 +15,7 @@ struct Model {
     _window: WindowId,
     point: Point2,
     entities: Vec<Entity>,
-    _audio_stream: audio::Stream<Arc<Mutex<Audio>>>,
+//    _audio_stream: audio::Stream<Arc<Mutex<Audio>>>,
     audio: Arc<Mutex<Audio>>
 }
 
@@ -70,7 +72,7 @@ fn model(app: &App) -> Model {
         _window,
         point: Point2::default(),
         entities: vec![],
-        _audio_stream,
+//        _audio_stream,
         audio: audio_model
     }
 }
@@ -91,13 +93,13 @@ fn audio(audio: &mut Arc<Mutex<Audio>>, buffer: &Buffer) {
 }
 
 // Handle events related to the window and update the model if necessary
-fn event(app: &App, model: &mut Model, event: WindowEvent) {
+fn event(_app: &App, model: &mut Model, event: WindowEvent) {
     match event {
         WindowEvent::MouseMoved(point) => {
             model.point = point;
         }
         WindowEvent::MousePressed(_mouse_button) => {
-            (0..500).for_each(|_| {
+            (0..50).for_each(|_| {
                 let entity = Entity::new_random_direction(30.0, model.point);
                 model.entities.push(entity);
             });
@@ -131,10 +133,17 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     // Prepare to draw.
     let draw = app.draw();
 
+    draw.line()
+        .start(Point2::default())
+        .end(Point2{
+            x: app.time.sin() * 50.0,
+            y: app.time.cos() * 50.0
+        })
+        .thickness(3.5);
 
-    // Clear the background to purple.
     draw.background()
-        .color(LIGHT_PURPLE);
+        .color(PURPLE);
+//        .color(RED);
 
     // Draw a blue ellipse with default size and position.
     draw.ellipse()
@@ -160,46 +169,4 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     frame
 }
 
-// TODO I'm going to want a ring buffer to limit the number of entities at a time, while still allowing a source to spawn them in relevant locations.
 
-pub struct RingBuffer<T> {
-    index: usize,
-    buf: Vec<Option<T>>
-}
-
-pub struct RingBufferIterator<T> {
-    ring_buffer: RingBuffer<T>,
-    pos: usize
-}
-
-impl <T> Iterator for RingBufferIterator<T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.ring_buffer.buf.len() ==
-    }
-}
-
-impl <T> RingBuffer<T> {
-    pub fn new(size: usize) -> Self {
-        RingBuffer {
-            index: 0,
-            buf: vec![None, size]
-        }
-    }
-
-    pub fn push(&mut self, value: T){
-        self.buf[index] = Some(value);
-        index += 1 % (self.buf.len() - 1);
-    }
-
-    pub fn pop(&mut self) -> Option<T> {
-        let v = self.buf[index];
-        if index == 0 {
-            index = self.buf.len() - 1;
-        } else {
-            index -= 1;
-        }
-        v
-    }
-}
