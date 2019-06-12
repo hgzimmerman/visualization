@@ -3,31 +3,61 @@ use std::iter::FromIterator;
 /// A linear slice of memory that will wrap around when adding or subtracting elements
 #[derive(Debug)]
 pub struct RingBuffer<T> {
+    /// The index to start iterating from.
     start: usize,
+    /// Number of occupied elements in the ring buffer
     occupied: usize,
-    buf: Vec<Option<T>> // The option T isn't ideal
+    /// Max size
+    size: usize,
+    /// Backing buffer.
+    buf: Vec<T>
 }
 
 impl <T> RingBuffer<T> {
     fn index(&self) -> usize {
-        (self.start + self.occupied) % self.buf.len()
+        (self.start + self.occupied) % self.size
     }
 
-    pub fn push(&mut self, value: T) {
-        let index = self.index();
-        self.buf[index] = Some(value);
+    /// The size is fixed once the ring buffer is created.
+    /// New entries will overwrite old ones.
+    pub fn new(size: usize) -> Self {
+        RingBuffer {
+            start: 0,
+            occupied: 0,
+            size,
+            buf: Vec::new()
+        }
+    }
 
-        if self.occupied < self.buf.len() {
+    /// clears the iterator.
+    pub fn clear(&mut self) {
+        self.buf.clear();
+        self.start = 0;
+        self.occupied = 0;
+    }
+
+    /// Size of ring buffer.
+    pub fn size(&self) -> usize {
+        self.size
+    }
+
+    /// If it evicts a value, it will be returned.
+    pub fn push(&mut self, value: T) -> Option<T> {
+        if self.occupied < self.size {
+            self.buf.push(value);
             self.occupied += 1;
+            None
         } else {
-            self.start = (self.start + 1) % self.buf.len()
+            let index = self.index();
+            let v = std::mem::replace(&mut self.buf[index], value);
+            self.start = (self.start + 1) % self.buf.len();
+            Some(v)
         }
     }
 
     pub fn pop(&mut self) -> Option<T> {
         if self.occupied > 0 {
-            let index = self.index();
-            let v = self.buf[index].take();
+            let v = self.buf.pop();
             self.occupied -= 1;
             v
         } else {
@@ -41,19 +71,15 @@ impl <T> RingBuffer<T> {
             pos: 0
         }
     }
-}
 
-impl <T: Clone> RingBuffer<T> {
-    /// The size is fixed once the ring buffer is created.
-    /// New entries will overwrite old ones.
-    pub fn new(size: usize) -> Self {
-        RingBuffer {
-            start: 0,
-            occupied: 0,
-            buf: vec![None; size]
+    pub fn iter_mut(&mut self) -> RingBufferMutIterator<T> {
+        RingBufferMutIterator {
+            ring_buffer: self,
+            pos: 0
         }
     }
 }
+
 
 impl <T> IntoIterator for RingBuffer<T> {
     type Item = T;
@@ -71,10 +97,11 @@ impl <A> FromIterator<A> for RingBuffer<A> {
         where
         T: IntoIterator<Item = A>
     {
-        let buf: Vec<Option<A>> = iter.into_iter().map(Option::Some).collect();
+        let buf: Vec<A> = iter.into_iter().collect();
         RingBuffer {
             start: 0,
             occupied: buf.len(),
+            size: buf.len(),
             buf
         }
     }
@@ -94,9 +121,9 @@ impl <T> Iterator for IntoRingBufferIterator<T> {
         if self.pos >= self.ring_buffer.occupied {
            None
         } else {
-            let index = (self.ring_buffer.start + self.pos) % self.ring_buffer.buf.len();
+            let index = (self.ring_buffer.start + self.pos) % self.ring_buffer.size;
             self.pos += 1;
-            self.ring_buffer.buf[index].take()
+            Some(self.ring_buffer.buf.swap_remove(index))
         }
     }
 }
@@ -114,9 +141,32 @@ impl <'a, T> Iterator for RingBufferIterator<'a, T> {
         if self.pos >= self.ring_buffer.occupied {
            None
         } else {
-            let index = (self.ring_buffer.start + self.pos) % self.ring_buffer.buf.len();
+            let index = (self.ring_buffer.start + self.pos) % self.ring_buffer.size;
             self.pos += 1;
-            self.ring_buffer.buf[index].as_ref()
+            Some(&self.ring_buffer.buf[index])
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct RingBufferMutIterator<'a, T: 'a> {
+    ring_buffer: &'a mut RingBuffer<T>,
+    pos: usize
+}
+
+impl <'a, T> Iterator for RingBufferMutIterator<'a, T> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.ring_buffer.occupied {
+           None
+        } else {
+            let index = (self.ring_buffer.start + self.pos) % self.ring_buffer.size;
+            self.pos += 1;
+            unsafe {
+                let buf_ptr = self.ring_buffer.buf.as_mut_ptr();
+                Some(&mut *(buf_ptr.offset( index as isize)))
+            }
         }
     }
 }
@@ -126,7 +176,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn ring_buffer() {
+    fn ring_buffer_iter() {
         let mut rb = RingBuffer::new(10);
         rb.push(1);
         rb.push(2);
@@ -137,26 +187,42 @@ mod test {
     }
 
     #[test]
-    fn ring_buffer2() {
+    fn ring_buffer_iter_overwrite() {
         let mut rb = RingBuffer::new(3);
-        println!("{:?}", rb);
         rb.push(1);
-        println!("{:?}", rb);
         rb.push(2);
-        println!("{:?}", rb);
         rb.push(3);
-        println!("{:?}", rb);
         rb.push(4);
-        println!("{:?}", rb);
 
 
         let mut iter = rb.iter();
-        println!("{:?}", iter);
         assert_eq!(iter.next(), Some(&2));
-        println!("{:?}", iter);
         assert_eq!(iter.next(), Some(&3));
-        println!("{:?}", iter);
         assert_eq!(iter.next(), Some(&4));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn ring_buffer_from_iter() {
+        let rb = (0..10).collect::<RingBuffer<_>>();
+        assert_eq!(rb.size(), 10)
+    }
+
+    #[test]
+    fn ring_buffer_iter_mut() {
+        let mut rb = RingBuffer::new(10);
+        rb.push(1);
+        rb.push(2);
+        rb.push(3);
+        let mut iter = rb.iter_mut();
+        assert_eq!(iter.next(), Some(&mut 1));
+        assert_eq!(iter.next(), Some(&mut 2));
+
+        let z = 20;
+        if let Some(v) = iter.next() {
+            *v = z;
+        }
+
+        assert_eq!(rb.pop(), Some(20))
     }
 }
