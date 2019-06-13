@@ -6,7 +6,7 @@ pub struct RingBuffer<T> {
     /// The index to start iterating from.
     start: usize,
     /// Number of occupied elements in the ring buffer
-    occupied: usize,
+    pub(crate) occupied: usize,
     /// Max size
     size: usize,
     /// Backing buffer.
@@ -63,8 +63,17 @@ impl <T> RingBuffer<T> {
         } else {
             None
         }
-
     }
+
+    /// Sets the start back to index 0, and the occupied length to the size of the buffer after it has been retained.
+    pub fn retain<F>(&mut self, f: F)
+        where F: FnMut(&T) -> bool
+    {
+        self.buf.retain(f);
+        self.start = 0;
+        self.occupied = self.buf.len();
+    }
+
     pub fn iter(&self) -> RingBufferIterator<T> {
         RingBufferIterator {
             ring_buffer: &self,
