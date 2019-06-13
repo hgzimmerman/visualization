@@ -1,7 +1,8 @@
 use std::iter::FromIterator;
 use std::ops::{Index, IndexMut};
 
-/// A linear slice of memory that will wrap around when adding or subtracting elements
+/// A linear slice of memory that will wrap around when adding or subtracting elements.
+/// Since it doesn't re-allocate, and overwrites old elements, it is excellently suited to graphics.
 #[derive(Debug)]
 pub struct RingBuffer<T> {
     /// The index to start iterating from.
@@ -48,20 +49,21 @@ impl <T> RingBuffer<T> {
         self.occupied
     }
 
+    /// Equivalent to `rb[0]`
     pub fn first(&self) -> Option<&T> {
         if self.occupied == 0 {
             None
         } else {
-            Some(&self.buf[self.start])
+            Some(&self[0])
         }
     }
 
-    // TODO consider removing and replacing with rb[rb.occupied()]
+    /// Equivalent to `rb[rb.occupied() - 1]`
     pub fn last(&self) -> Option<&T> {
         if self.occupied == 0 {
             None
         } else {
-            Some(&self.buf[(self.start + self.occupied - 1) % self.size])
+            Some(&self[self.occupied() - 1])
         }
     }
 
