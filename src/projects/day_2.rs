@@ -41,24 +41,27 @@ impl Model {
         model.frame_counter += 1;
 //        let since_last: f32 = update.since_last.secs() as f32;
 
+        const CIRCLE_RADIUS: f32 = 100.0;
+        let since_last: f32 = update.since_last.secs() as f32;
+
         let last_point_1 = model.last_point_1;
         let new_point_1 = Point2 {
-            x: app.time.cos() * 70.0,
-            y: app.time.sin() * 70.0
+            x: app.time.cos() * CIRCLE_RADIUS,
+            y: app.time.sin() * CIRCLE_RADIUS
         };
         model.last_point_1 = new_point_1;
 
         let last_point_2 = model.last_point_2;
         let new_point_2 = Point2 {
-            x: (app.time * 1.1).sin() * 70.0,
-            y: (app.time * 1.1).cos() * 70.0
+            x: (app.time * 1.1).sin() * CIRCLE_RADIUS,
+            y: (app.time * 1.1).cos() * CIRCLE_RADIUS
         };
         model.last_point_2 = new_point_2;
 
 
 
         if model.frame_counter % 10 == 0 {
-            const DIRECTION_SCALAR: f32 = 0.7;
+            const DIRECTION_SCALAR: f32 = 1.7;
             let new_entity_1 = Entity {
                 points: {
                     let mut buf = RingBuffer::new(20);
@@ -133,7 +136,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     let draw = app.draw();
 
     draw.background()
-        .color(DARK_BLUE);
+        .color(LIGHT_YELLOW);
 
     model.entities
         .iter()
@@ -145,6 +148,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
 //                .vertices(0.50, vertices);
 
             draw.line()
+                .thickness(2.7)
                 .color(e.color)
                 .start(*e.points.first().unwrap())
                 .end(*e.points.last().unwrap());
