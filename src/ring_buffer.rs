@@ -1,4 +1,5 @@
 use std::iter::FromIterator;
+use std::ops::{Index, IndexMut};
 
 /// A linear slice of memory that will wrap around when adding or subtracting elements
 #[derive(Debug)]
@@ -6,7 +7,7 @@ pub struct RingBuffer<T> {
     /// The index to start iterating from.
     start: usize,
     /// Number of occupied elements in the ring buffer
-    pub(crate) occupied: usize,
+    occupied: usize,
     /// Max size
     size: usize,
     /// Backing buffer.
@@ -14,7 +15,8 @@ pub struct RingBuffer<T> {
 }
 
 impl <T> RingBuffer<T> {
-    fn index(&self) -> usize {
+    /// First open spot, or the next element to replace.
+    fn insert_index(&self) -> usize {
         (self.start + self.occupied) % self.size
     }
 
@@ -36,9 +38,31 @@ impl <T> RingBuffer<T> {
         self.occupied = 0;
     }
 
-    /// Size of ring buffer.
+    /// Max size of ring buffer.
     pub fn size(&self) -> usize {
         self.size
+    }
+
+    /// How many slots in the ring buffer are occupied
+    pub fn occupied(&self) -> usize {
+        self.occupied
+    }
+
+    pub fn first(&self) -> Option<&T> {
+        if self.occupied == 0 {
+            None
+        } else {
+            Some(&self.buf[self.start])
+        }
+    }
+
+    // TODO consider removing and replacing with rb[rb.occupied()]
+    pub fn last(&self) -> Option<&T> {
+        if self.occupied == 0 {
+            None
+        } else {
+            Some(&self.buf[(self.start + self.occupied - 1) % self.size])
+        }
     }
 
     /// If it evicts a value, it will be returned.
@@ -48,7 +72,7 @@ impl <T> RingBuffer<T> {
             self.occupied += 1;
             None
         } else {
-            let index = self.index();
+            let index = self.insert_index();
             let v = std::mem::replace(&mut self.buf[index], value);
             self.start = (self.start + 1) % self.buf.len();
             Some(v)
@@ -86,6 +110,20 @@ impl <T> RingBuffer<T> {
             ring_buffer: self,
             pos: 0
         }
+    }
+}
+
+impl <T> Index<usize> for RingBuffer<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.buf[(self.start + index) % self.occupied]
+    }
+}
+
+impl <T> IndexMut<usize> for RingBuffer<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.buf[(self.start + index) % self.occupied]
     }
 }
 
@@ -233,5 +271,28 @@ mod test {
         }
 
         assert_eq!(rb.pop(), Some(20))
+    }
+
+    #[test]
+    fn index() {
+        let mut rb = RingBuffer::new(10);
+        rb.push(1);
+        rb.push(2);
+        rb.push(3);
+        assert_eq!(rb[0], 1);
+        assert_eq!(rb[1], 2);
+        assert_eq!(rb[2], 3);
+        assert_eq!(rb[3], 1); // wraps back around
+    }
+
+    #[test]
+    fn index_on_wrapped() {
+        let mut rb = RingBuffer::new(2);
+        rb.push(1);
+        rb.push(2);
+        rb.push(3);
+        assert_eq!(rb[0], 2);
+        assert_eq!(rb[1], 3);
+        assert_eq!(rb[2], 2);
     }
 }
