@@ -2,6 +2,7 @@ use nannou::prelude::*;
 use nannou::audio::buffer::Buffer;
 use std::sync::{Mutex, Arc};
 use crate::ring_buffer::RingBuffer;
+use nannou::audio::Stream;
 
 mod ring_buffer;
 mod fft;
@@ -78,18 +79,7 @@ fn model(app: &App) -> Model {
         )
     );
     const AUDIO_ENABLED: bool = false;
-    let _audio_stream = if AUDIO_ENABLED {
-        Some(
-            app
-            .audio
-            .new_input_stream(audio_model.clone(), audio)
-            .device(app.audio.default_input_device().unwrap())
-            .build()
-            .unwrap()
-        )
-    } else {
-        None
-    };
+    let _audio_stream = init_audio_stream(app,audio_model.clone(), AUDIO_ENABLED);
 
     Model {
         _window,
@@ -99,6 +89,21 @@ fn model(app: &App) -> Model {
         audio: audio_model,
         window_dimensions: Vector2::default(),
         frame_counter: 0
+    }
+}
+
+fn init_audio_stream(app: &App, audio_model: Arc<Mutex<Audio>>, enabled: bool) -> Option<Stream<Arc<Mutex<Audio>>>> {
+    if enabled {
+        Some(
+            app
+            .audio
+            .new_input_stream(audio_model, audio)
+            .device(app.audio.default_input_device().unwrap())
+            .build()
+            .unwrap()
+        )
+    } else {
+        None
     }
 }
 
