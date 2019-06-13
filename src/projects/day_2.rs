@@ -17,7 +17,6 @@ pub struct Model {
 
 impl Model {
     pub fn init(app: &App) -> Model {
-    // Create a new window! Store the ID so we can refer to it later.
         let _window = app
             .new_window()
             .with_dimensions(512, 512)
@@ -40,7 +39,7 @@ impl Model {
 
     pub fn update(app: &App, model: &mut Model, update: Update) {
         model.frame_counter += 1;
-        let since_last: f32 = update.since_last.secs() as f32;
+//        let since_last: f32 = update.since_last.secs() as f32;
 
         let last_point_1 = model.last_point_1;
         let new_point_1 = Point2 {
@@ -67,7 +66,7 @@ impl Model {
                     buf.push(new_point_1);
                     buf
                 },
-                direction: (last_point_1 - new_point_1) * DIRECTION_SCALAR,
+                direction: (last_point_1 - new_point_1).normalize_to(DIRECTION_SCALAR),
                 acceleration: Vector2::default(),
                 color: RED
             };
@@ -80,7 +79,7 @@ impl Model {
                     buf.push(new_point_2);
                     buf
                 },
-                direction: (last_point_2 - new_point_2) * DIRECTION_SCALAR,
+                direction: (last_point_2 - new_point_2).normalize_to(DIRECTION_SCALAR),
                 acceleration: Vector2::default(),
                 color: BLUE
             };
