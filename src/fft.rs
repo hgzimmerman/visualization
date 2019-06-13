@@ -33,7 +33,11 @@ fn quinns_second_interpolate(fft_output: &[Complex<f32>], peak_index: usize ) ->
     let k = peak_index;
     let ap: f32 = (o[k + 1].re * o[k].re + o[k + 1].im * o[k].im) / (o[k].re.powi(2) + o[k].im.powi(2));
     let dp: f32 = -ap / (1.0 - ap);
-    let am: f32 = (o[k - 1].re * o[k].re + o[k - 1].im * o[k].im) / (o[k].re.powi(2) + o[k].im.powi(2));
+
+    let am: f32 = {
+        let o_at_k_minus_one = o.get(k - 1).cloned().unwrap_or_default();
+        (o_at_k_minus_one.re * o[k].re + o_at_k_minus_one.im * o[k].im) / (o[k].re.powi(2) + o[k].im.powi(2))
+    };
     let dm: f32 = am / (1.0 - am);
     let d = (dp + dm) / 2.0 + tau(dp * dp) - tau(dm * dm);
     k as f32 + d

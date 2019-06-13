@@ -35,7 +35,8 @@ struct Audio {
 struct Entity {
     point: Point2,
     direction: Point2,
-    acceleration: Point2
+    acceleration: Point2,
+    color: Rgba<f32>
 }
 impl Entity {
 
@@ -51,7 +52,8 @@ impl Entity {
         Entity {
             point,
             direction,
-            acceleration: direction / 10.0
+            acceleration: direction / 10.0,
+            color: Rgba::new_u8(255, nannou::rand::random_range(0, 128), nannou::rand::random_range(0, 128), 255)
         }
     }
 }
@@ -77,7 +79,7 @@ fn model(app: &App) -> Model {
             }
         )
     );
-    const AUDIO_ENABLED: bool = false;
+    const AUDIO_ENABLED: bool = true;
     let _audio_stream = if AUDIO_ENABLED {
         Some(
             app
@@ -95,7 +97,7 @@ fn model(app: &App) -> Model {
         _window,
         _audio_stream,
         point: Point2::default(),
-        entities: RingBuffer::new(525),
+        entities: RingBuffer::new(1525),
         audio: audio_model,
         window_dimensions: Vector2::default(),
         frame_counter: 0
@@ -111,7 +113,7 @@ fn on_resize(_: &App, model: &mut Model, dimensions: Vector2) {
 
 fn audio(audio: &mut Arc<Mutex<Audio>>, buffer: &Buffer) {
     let sample_rate = buffer.sample_rate() as f64;
-    let fft = fft::find_frequencies(&buffer, sample_rate as f32, 300.0); // I don't know about the magnitute cutoff here... it may need to be tuned.
+    let fft = fft::find_frequencies(&buffer, sample_rate as f32, 1.1); // I don't know about the magnitute cutoff here... it may need to be tuned.
 
     let avg_amp = buffer
         .frames()
@@ -121,7 +123,8 @@ fn audio(audio: &mut Arc<Mutex<Audio>>, buffer: &Buffer) {
     let mut audio = audio.lock().unwrap();
     audio.fft = fft;
     audio.avg_amp = avg_amp;
-    audio.sample_rate = sample_rate
+    audio.sample_rate = sample_rate;
+//    dbg!(&audio);
 }
 
 /// Handle events related to the window and update the model if necessary
@@ -173,7 +176,7 @@ fn regular(_app: &App, model: &mut Model, update: Update) {
             e.direction += e.acceleration * since_last;
             e.point += e.direction * since_last * multiplier;
         });
-    dbg!(model.entities.occupied);
+//    dbg!(model.entities.occupied);
 }
 
 // Draw the state of your `Model` into the given `Frame` here.
@@ -183,7 +186,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     let draw = app.draw();
 
     draw.background()
-        .color(PURPLE);
+        .color(DARK_BLUE);
 
 
     draw.line()
@@ -210,7 +213,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
             .y(e.point.y)
             .width(B)
             .height(B)
-            .color(DARK_RED);
+            .color(e.color);
     });
 
     // Write to the window frame.
