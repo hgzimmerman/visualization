@@ -89,13 +89,14 @@ impl Model {
         model.last_pts[2] = new_point_2;
         model.last_pts[3] = new_point_3;
 
+
         let mouse_point = model.mouse_point.clone();
         model.entities
             .iter_mut()
             .for_each(|e| {
                 e.direction += e.acceleration;
                 if let Some(mouse_point) = mouse_point {
-                    let mouse_grav = (mouse_point - e.points.last().cloned().unwrap()).normalize_to(0.01);
+                    let mouse_grav = (mouse_point - e.points.last().cloned().unwrap()).normalize_to(1.0) / (e.points.last().cloned().unwrap() - mouse_point).magnitude();
                     e.direction += mouse_grav;
                 }
 
@@ -149,10 +150,10 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
 fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     let draw = app.draw();
 
-    frame.clear(LIGHT_YELLOW);
+    frame.clear(DARK_CHARCOAL);
 
-    draw.background()
-        .color(LIGHT_YELLOW);
+//    draw.background()
+//        .color(LIGHT_YELLOW);
 
     model.entities
         .iter()
