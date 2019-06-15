@@ -1,6 +1,5 @@
 use nannou::prelude::*;
 use std::num::Wrapping;
-use nannou::app::Draw;
 use rand::thread_rng;
 use rand::distributions::{UnitCircle, Distribution};
 use rand::seq::SliceRandom;
@@ -147,7 +146,7 @@ impl Model {
         }
     }
 
-    pub fn update(app: &App, model: &mut Model, _update: Update) {
+    pub fn update(_app: &App, model: &mut Model, _update: Update) {
         model.frame_counter += Wrapping(1);
 
         model.circles.radius = model.window_dimensions.y / 2.0;

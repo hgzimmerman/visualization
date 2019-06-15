@@ -8,7 +8,7 @@ use projects::*;
 
 
 fn main() {
-    select(3);
+    select(4);
 }
 
 
@@ -27,6 +27,11 @@ fn select(i: usize) {
         3 => {
             nannou::app(day_3::Model::init)
                 .update(day_3::Model::update)
+                .run();
+        }
+        4 => {
+            nannou::app(day_4::Model::init)
+                .update(day_4::Model::update)
                 .run();
         }
         _ => panic!("Not implemented")
