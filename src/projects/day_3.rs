@@ -4,16 +4,18 @@ use nannou::app::Draw;
 use rand::thread_rng;
 use rand::distributions::{UnitCircle, Distribution};
 use rand::seq::SliceRandom;
+use std::cmp::Ordering;
 
 pub struct Model {
     _window: WindowId,
     window_dimensions: Vector2,
     frame_counter: Wrapping<u64>,
-    circles: Circ
+    circles: Circ,
+    circ_buffer: Vec<(f32, Point2, Rgba)>
 }
 
-// TODO is it better to pre-compute the circle-tree and just only render certain parts as it is recursed?
 // TODO consider adding a value that allows every circle to be rotated slowly
+// (Rotate the children)
 #[derive(Default)]
 pub struct Circ {
     center: Point2<f32>,
@@ -116,9 +118,6 @@ impl Circ {
 
 
             self.inner = inner;
-
-            // sort by max distance
-
         }
     }
 
@@ -136,13 +135,15 @@ impl Model {
             .build()
             .unwrap();
 
-        let c = Circ::default();
+        let mut c = Circ::default();
+        c.color = RED;
 
         Model {
             _window,
             window_dimensions: Vector2::default(),
             frame_counter: Wrapping(0),
-            circles: c
+            circles: c,
+            circ_buffer: Vec::new()
         }
     }
 
@@ -151,26 +152,23 @@ impl Model {
 
         model.circles.radius = model.window_dimensions.y / 2.0;
         model.circles.color = RED;
-
-        fn add_new_circle(circle: &mut Circ) {
-            if circle.inner.len() < 4 {
-
-                // Find a random center within the current radius and add to inner
-                // More specifically:
-                // Find a xy along the circle dictated by parent radius - new_radius, that doesn't intersect with other siblings.
-
-                // TODO I need a circle packing algorithm, non-random
-                // I want > 50% coverage
-                // It
-            } else {
-
-            }
-        }
-
-        if model.frame_counter % Wrapping(15) == Wrapping(0) {
-            add_new_circle(&mut model.circles)
-        }
     }
+}
+
+
+
+
+fn setup_circ_buffer(buf: &mut Vec<(f32, Point2, Rgba)>, circle: &Circ) {
+
+    fn dump_circ_info(circle: &Circ, buffer: &mut Vec<(f32, Point2, Rgba)>) {
+        buffer.push((circle.radius, circle.center, circle.color));
+        circle.inner.iter().for_each(|i| dump_circ_info(i, buffer))
+    }
+
+    dump_circ_info(circle, buf);
+    buf.sort_by(|x, y| {
+      x.0.partial_cmp( &y.0).unwrap_or_else(|| Ordering::Greater).reverse()
+    });
 }
 
 fn on_resize(_: &App, model: &mut Model, dimensions: Vector2) {
@@ -178,6 +176,12 @@ fn on_resize(_: &App, model: &mut Model, dimensions: Vector2) {
     model.circles.radius = model.window_dimensions.y / 2.0;
     model.circles.inner.clear();
     model.circles.pack_circle();
+
+
+    // fill up the circ buffer
+    model.circ_buffer.clear();
+    setup_circ_buffer(&mut model.circ_buffer, &model.circles);
+
     println!("Resized: {:?}", dimensions);
 }
 
@@ -189,11 +193,14 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
         WindowEvent::MousePressed(_) => {
         }
         WindowEvent::KeyPressed(Key::Space) => {
+            model.frame_counter = Wrapping(0);
             model.circles.inner.clear();
             model.circles.pack_circle();
+            model.circ_buffer.clear();
+            setup_circ_buffer(&mut model.circ_buffer, &model.circles);
         }
         WindowEvent::KeyPressed(Key::Q) => {
-            std::process::exit(0) // Q -> exit program
+            std::process::exit(0); // Q -> exit program
         }
         _ => println!("{:?}", event)
     }
@@ -205,15 +212,16 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     frame.clear(LIGHT_YELLOW);
 
 
-    fn draw_circles(draw: &Draw, circle: &Circ) {
-        draw.ellipse()
-            .xy(circle.center)
-            .radius(circle.radius)
-            .color(circle.color);
-        circle.inner.iter().for_each(|c| draw_circles(draw, &c));
-    }
 
-    draw_circles(&draw, &model.circles);
+    model.circ_buffer
+        .iter()
+        .take(model.frame_counter.0 as usize)
+        .for_each(|c| {
+            draw.ellipse()
+                .xy(c.1)
+                .radius(c.0)
+                .color(c.2);
+        });
 
 
     // Write to the window frame.
