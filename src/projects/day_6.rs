@@ -6,8 +6,35 @@ pub struct Model {
     _window: WindowId,
     window_dimensions: Vector2,
     frame_counter: Wrapping<usize>,
+    /// How many lines to draw
     d_counter: usize,
-    iteration: usize
+    /// The iteration to draw.
+    iteration: usize,
+    /// Buffer containing all of the lines needed to draw the complete curve for the current iteration.
+    line_buffer: Vec<(Point2, Point2)>
+}
+
+fn fill_line_buffer(iteration: usize) -> Vec<(Point2, Point2)> {
+    const SCALE: f32 = 480.0;
+    fn transform(i: f32, n: f32) -> f32 {
+        ((i - ((n - 1.0) / 2.0)) / n) * SCALE
+    }
+    let n = HilbertIterator::new_with_iteration(iteration).n();
+
+    HilbertIterator::new_with_iteration(iteration)
+        .map(|(pt_0, pt_1): (Point, Point)| {
+            (
+                Point2 {
+                    x: transform(pt_0.x() as f32, n as f32),
+                    y: transform(pt_0.y() as f32, n as f32),
+                },
+                Point2 {
+                    x: transform(pt_1.x() as f32, n as f32),
+                    y: transform(pt_1.y() as f32, n as f32),
+                },
+            )
+        })
+        .collect()
 }
 
 
@@ -28,7 +55,8 @@ impl Model {
             window_dimensions: Vector2::default(),
             frame_counter: Wrapping(0),
             d_counter: 0,
-            iteration: 1
+            iteration: 1,
+            line_buffer: fill_line_buffer(1)
         }
     }
 
@@ -40,10 +68,6 @@ impl Model {
 
         model.d_counter = (model.frame_counter.0 as f32 / speed) as usize;
 
-//        if model.frame_counter.0 % (5 / model.iteration) == 0 {
-//            model.d_counter += 1;
-//        }
-
         let max_d = HilbertIterator::new_with_iteration(model.iteration).d_max();
 
         // Bump the iteration count if the max_d has been surpassed for .5 second
@@ -51,6 +75,7 @@ impl Model {
             model.frame_counter.0 = 0;
             model.d_counter = 0;
             model.iteration += 1;
+            model.line_buffer = fill_line_buffer(model.iteration);
         }
 
     }
@@ -71,6 +96,7 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
             model.frame_counter = Wrapping(0);
             model.iteration = 1;
             model.d_counter = 0;
+            model.line_buffer = fill_line_buffer(model.iteration);
         }
         WindowEvent::KeyPressed(Key::Q) => {
             std::process::exit(0); // Q -> exit program
@@ -84,36 +110,22 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
 
     frame.clear(WHITE);
 
-    let iteration = model.iteration;
+    const THICKNESS: f32 = 6.0;
+    let thickness = THICKNESS / model.iteration as f32;
+    let half_thickness = thickness / 2.0;
 
-    const SCALE: f32 = 480.0;
-
-    let n = HilbertIterator::new_with_iteration(iteration).n();
-
-    fn transform(i: f32, n: f32) -> f32 {
-        ((i - ((n - 1.0) / 2.0)) / n) * SCALE
-    }
-
-    HilbertIterator::new_with_iteration(iteration)
+    model.line_buffer.iter()
         .take(model.d_counter)
-        .map(|(pt_0, pt_1): (Point, Point)| {
-            (
-                Point2 {
-                    x: transform(pt_0.x() as f32, n as f32),
-                    y: transform(pt_0.y() as f32, n as f32),
-                },
-                Point2 {
-                    x: transform(pt_1.x() as f32, n as f32),
-                    y: transform(pt_1.y() as f32, n as f32),
-                },
-            )
-        })
-        .for_each(|(pt_0, pt_1): (Point2, Point2)| {
+        .for_each(|(pt_0, pt_1): &(Point2, Point2)| {
             draw.line()
-                .start(pt_0)
-                .end(pt_1)
-                .thickness(2.0)
+                .start(*pt_0)
+                .end(*pt_1)
+                .thickness(thickness)
                 .color(BLACK);
+            draw.ellipse()
+                .xy(*pt_1)
+                .color(BLACK)
+                .radius(half_thickness);
         });
 
 
