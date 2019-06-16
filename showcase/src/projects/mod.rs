@@ -1,17 +1,17 @@
 //! # IDEAS
 //!
-//! * Color space transitions.
+//! * Color space transitions.                                  -- day 7
 //! * Trees
 //! * Maze generation
 //! * Learn how the fuck to use shaders.
-//! * Space filling curves !!!
-//! * Day 2 + gravity at mouse (toggle)
+//! * Space filling curves !!!                                  -- day 6, 7, 8
+//! * gravity at mouse (toggle)                                 -- day 2
 //! * Voronoi diagrams - https://crates.io/crates/voronoi
 //! * Filters (Gaussian, etc...)
-//! * https://www.instagram.com/p/BbZpMwKFpS9/                      -- day 4, try again with altering the radius for an easy other day.
+//! * https://www.instagram.com/p/BbZpMwKFpS9/                      -- day 4, day 5
 //! * Webcam shader nonsense.
 //! * Circle packing: https://www.instagram.com/p/BTsZ6F9ljZT/    -- day 3
-//! * Wrapping around each side
+//! * Wrapping moving objects around each side
 //! * Boids again
 
 pub mod day_1;
