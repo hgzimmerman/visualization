@@ -6,9 +6,9 @@
 use nannou::prelude::*;
 use nannou::audio::buffer::Buffer;
 use std::sync::{Mutex, Arc};
-use crate::ring_buffer::RingBuffer;
+use common::ring_buffer::RingBuffer;
 use nannou::audio::Stream;
-use crate::fft;
+use common::fft;
 
 
 pub struct Model {

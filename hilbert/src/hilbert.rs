@@ -125,11 +125,6 @@ impl Iterator for HilbertIterator {
         } else {
             Some((pt_0, pt_1))
         }
-
     }
-
 }
-
-
-
 

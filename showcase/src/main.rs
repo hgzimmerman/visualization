@@ -1,11 +1,9 @@
 
 
-pub mod ring_buffer;
-mod fft;
-mod hilbert;
-
 mod projects;
 use projects::*;
+
+use hilbert::*;
 
 use clap::{App, Arg};
 
@@ -70,8 +68,25 @@ fn select(i: usize) {
                 .update(day_6::Model::update)
                 .run();
         }
+        7 => {
+            nannou::app(day_7::Model::init)
+                .update(day_7::Model::update)
+                .run();
+        }
+        8 => {
+            nannou::app(day_8::Model::init)
+                .update(day_8::Model::update)
+                .run();
+        }
         _ => panic!("Not implemented")
     }
+}
+
+pub enum MetaModel {
+    Day1(day_1::Model),
+    Day2(day_2::Model),
+    Day3(day_3::Model),
+
 }
 
 

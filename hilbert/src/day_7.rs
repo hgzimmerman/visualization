@@ -6,13 +6,12 @@ pub struct Model {
     _window: WindowId,
     window_dimensions: Vector2,
     frame_counter: Wrapping<usize>,
-    /// How many lines to draw
-    d_counter: usize,
-    /// The iteration to draw.
-    iteration: usize,
     /// Buffer containing all of the lines needed to draw the complete curve for the current iteration.
     line_buffer: Vec<(Point2, Point2)>
 }
+
+
+const ITERATION: usize = 4;
 
 fn fill_line_buffer(iteration: usize) -> Vec<(Point2, Point2)> {
     const SCALE: f32 = 480.0;
@@ -43,7 +42,7 @@ impl Model {
         let _window = app
             .new_window()
             .with_dimensions(512, 512)
-            .with_title("day 6")
+            .with_title("day 7")
             .view(view) // The function that will be called for presenting graphics to a frame.
             .event(event) // The function that will be called when the window receives events.
             .resized(on_resize)
@@ -54,30 +53,12 @@ impl Model {
             _window,
             window_dimensions: Vector2::default(),
             frame_counter: Wrapping(0),
-            d_counter: 0,
-            iteration: 1,
-            line_buffer: fill_line_buffer(1)
+            line_buffer: fill_line_buffer(ITERATION)
         }
     }
 
-    pub fn update(app: &App, model: &mut Model, _update: Update) {
+    pub fn update(_app: &App, model: &mut Model, _update: Update) {
         model.frame_counter += Wrapping(1);
-
-
-        let speed = 2.0 / model.iteration.pow(2) as f32;
-
-        model.d_counter = (model.frame_counter.0 as f32 / speed) as usize;
-
-        let max_d = HilbertIterator::new_with_iteration(model.iteration).d_max();
-
-        // Bump the iteration count if the max_d has been surpassed for .5 second
-        if model.d_counter > max_d + (30.0 / speed) as usize {
-            model.frame_counter.0 = 0;
-            model.d_counter = 0;
-            model.iteration += 1;
-            model.line_buffer = fill_line_buffer(model.iteration);
-        }
-
     }
 }
 
@@ -94,9 +75,6 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
         }
         WindowEvent::KeyPressed(Key::Space) => {
             model.frame_counter = Wrapping(0);
-            model.iteration = 1;
-            model.d_counter = 0;
-            model.line_buffer = fill_line_buffer(model.iteration);
         }
         WindowEvent::KeyPressed(Key::Q) => {
             std::process::exit(0); // Q -> exit program
@@ -108,24 +86,36 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
 fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     let draw = app.draw();
 
-    frame.clear(WHITE);
+    frame.clear(Rgba::new(0.05, 0.05, 0.05, 1.0));
 
     const THICKNESS: f32 = 6.0;
-    let thickness = THICKNESS / model.iteration as f32;
-    let half_thickness = thickness / 2.0;
+    const HALF_THICKNESS: f32 = THICKNESS / 2.0;
 
-    model.line_buffer.iter()
-        .take(model.d_counter)
-        .for_each(|(pt_0, pt_1): &(Point2, Point2)| {
+    let len = model.line_buffer.len();
+    let colors = vec![
+        (0.0, RED),
+        (25.0, GREEN),
+        (75.0, BLUE),
+        (100.0, RED)
+    ];
+    let skip = model.frame_counter.0 % len;
+    model.line_buffer
+        .iter()
+        .zip(nannou::color::Gradient::with_domain(colors)
+            .take(len)
+            .cycle()
+            .skip(skip)
+        )
+        .for_each(|((pt_0, pt_1), color): (&(Point2, Point2), Rgba)| {
             draw.line()
                 .start(*pt_0)
                 .end(*pt_1)
-                .thickness(thickness)
-                .color(BLACK);
+                .thickness(THICKNESS)
+                .color(color);
             draw.ellipse()
                 .xy(*pt_1)
-                .color(BLACK)
-                .radius(half_thickness);
+                .color(color)
+                .radius(HALF_THICKNESS);
         });
 
 

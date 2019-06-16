@@ -2,7 +2,7 @@
 ///
 ///
 
-use crate::ring_buffer::RingBuffer;
+use common::ring_buffer::RingBuffer;
 use nannou::prelude::*;
 
 pub struct Model {

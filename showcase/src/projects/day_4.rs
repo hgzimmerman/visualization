@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 use std::num::Wrapping;
-use crate::ring_buffer::RingBuffer;
+use common::ring_buffer::RingBuffer;
 
 pub struct Model {
     _window: WindowId,
