@@ -11,25 +11,33 @@ pub struct Model {
 }
 
 
-const ITERATION: usize = 4;
+const ITERATION: usize = 5;
 
-fn fill_line_buffer(iteration: usize) -> Vec<(Point2, Point2)> {
-    const SCALE: f32 = 480.0;
-    fn transform(i: f32, n: f32) -> f32 {
-        ((i - ((n - 1.0) / 2.0)) / n) * SCALE
+fn fill_line_buffer(iteration: usize, window_dimensions: Vector2) -> Vec<(Point2, Point2)> {
+    fn transform(i: f32, n: f32, min_dimension: f32) -> f32 {
+        ((i - ((n - 1.0) / 2.0)) / n) * min_dimension
     }
     let n = HilbertIterator::new_with_iteration(iteration).n();
+
+    let scale = {
+        let s: f32 = if window_dimensions.x < window_dimensions.y {
+            window_dimensions.x
+        } else {
+            window_dimensions.y
+        };
+        s - 50.0
+    };
 
     HilbertIterator::new_with_iteration(iteration)
         .map(|(pt_0, pt_1): (Point, Point)| {
             (
                 Point2 {
-                    x: transform(pt_0.x() as f32, n as f32),
-                    y: transform(pt_0.y() as f32, n as f32),
+                    x: transform(pt_0.x() as f32, n as f32, scale),
+                    y: transform(pt_0.y() as f32, n as f32, scale),
                 },
                 Point2 {
-                    x: transform(pt_1.x() as f32, n as f32),
-                    y: transform(pt_1.y() as f32, n as f32),
+                    x: transform(pt_1.x() as f32, n as f32, scale),
+                    y: transform(pt_1.y() as f32, n as f32, scale),
                 },
             )
         })
@@ -53,7 +61,7 @@ impl Model {
             _window,
             window_dimensions: Vector2::default(),
             frame_counter: Wrapping(0),
-            line_buffer: fill_line_buffer(ITERATION)
+            line_buffer: fill_line_buffer(ITERATION, Vector2::default())
         }
     }
 
@@ -64,6 +72,7 @@ impl Model {
 
 fn on_resize(_: &App, model: &mut Model, dimensions: Vector2) {
     model.window_dimensions = dimensions;
+    model.line_buffer = fill_line_buffer(ITERATION, model.window_dimensions);
 }
 
 /// Handle events related to the window and update the model if necessary
