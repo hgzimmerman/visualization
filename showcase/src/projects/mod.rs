@@ -13,6 +13,7 @@
 //! * Circle packing: https://www.instagram.com/p/BTsZ6F9ljZT/    -- day 3
 //! * Wrapping moving objects around each side
 //! * Boids again
+//! * L System - based fractal generation
 
 pub mod day_1;
 pub mod day_2;

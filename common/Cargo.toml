@@ -5,8 +5,7 @@ authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-#num-complex = "*"
 chfft = "0.2.4"
-#num-complex = ">=0.0.0"
-#num-complex = "0.1.43"
+nannou = "0.9"
 num-complex = "0.2.3"
+apply = "0.2.2"
