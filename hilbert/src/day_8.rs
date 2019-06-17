@@ -7,11 +7,14 @@ pub struct Model {
     window_dimensions: Vector2,
     frame_counter: Wrapping<usize>,
     /// Buffer containing all of the lines needed to draw the complete curve for the current iteration.
-    line_buffer: Vec<(Point2, Point2)>
+    line_buffer: Vec<(Point2, Point2)>,
+    iteration: usize,
+    thickness: f32
 }
 
 
 const ITERATION: usize = 4;
+const INITIAL_THICKNESS: f32 = 10.0;
 
 fn fill_line_buffer(iteration: usize) -> Vec<(Point2, Point2)> {
     const SCALE: f32 = 480.0;
@@ -53,7 +56,9 @@ impl Model {
             _window,
             window_dimensions: Vector2::default(),
             frame_counter: Wrapping(0),
-            line_buffer: fill_line_buffer(ITERATION)
+            line_buffer: fill_line_buffer(ITERATION),
+            iteration: ITERATION,
+            thickness: INITIAL_THICKNESS
         }
     }
 
@@ -73,11 +78,28 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
         }
         WindowEvent::MousePressed(_) => {
         }
-        WindowEvent::KeyPressed(Key::Space) => {
-            model.frame_counter = Wrapping(0);
-        }
-        WindowEvent::KeyPressed(Key::Q) => {
-            std::process::exit(0); // Q -> exit program
+        WindowEvent::KeyPressed(key) => {
+            match key {
+                Key::Right => {
+                    model.iteration += 1;
+                    model.line_buffer = fill_line_buffer(model.iteration);
+                },
+                Key::Left => {
+                    model.iteration -= 1;
+                    model.line_buffer = fill_line_buffer(model.iteration);
+                }
+                Key::Up => {
+                    model.thickness += 1.0;
+                }
+                Key::Down => {
+                    model.thickness -= 1.0;
+                }
+                Key::Q => {
+                    std::process::exit(0); // Q -> exit program
+                }
+                _ => {}
+            }
+
         }
         _ => println!("{:?}", event)
     }
@@ -88,8 +110,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
 
     frame.clear(WHITE);
 
-    const THICKNESS: f32 = 10.0;
-    const HALF_THICKNESS: f32 = THICKNESS / 2.0;
+    let half_thickness: f32 = model.thickness / 2.0;
 
     model.line_buffer
         .iter()
@@ -98,7 +119,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
             draw.ellipse()
                 .xy(*pt_0)
                 .color(BLACK)
-                .radius(HALF_THICKNESS);
+                .radius(half_thickness);
         });
 
     model.line_buffer
@@ -107,12 +128,12 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
             draw.line()
                 .start(*pt_0)
                 .end(*pt_1)
-                .thickness(THICKNESS)
+                .thickness(model.thickness)
                 .color(BLACK);
             draw.ellipse()
                 .xy(*pt_1)
                 .color(BLACK)
-                .radius(HALF_THICKNESS);
+                .radius(half_thickness);
         });
 
 
