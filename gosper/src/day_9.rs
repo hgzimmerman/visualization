@@ -1,3 +1,7 @@
+/// Draws a gasper curve.
+///
+
+
 use nannou::prelude::*;
 use std::num::Wrapping;
 use common::l_system::{LSystem};
@@ -20,9 +24,13 @@ const INITIAL_THICKNESS: f32 = 2.0;
 const INITIAL_LINE_LENGTH: f32 = 8.0;
 
 
+/// Uses an L-system + Gosper grammar to construct a list of items.
+/// Since the l system is reified with points starting at the center,
+/// the path is not centered on the screen.
+///
+/// So an approximate spacial center of the path is found, and the points are all then offset from that.
 fn build_point_buffer(iterations: usize, line_length: f32,) -> Vec<Point2> {
     let lsystem = LSystem::new(vec![Gosper::A]).iterate_n(iterations);
-    // TODO Consider taking this with a default origin, finding the middle element and using that as the center and using that as an offset for rendering?
     let point_buffer: Vec<Point2> = lsystem
         .reify_iter(std::f32::consts::FRAC_PI_3, line_length, Point2::default())
         .collect();
@@ -33,11 +41,8 @@ fn build_point_buffer(iterations: usize, line_length: f32,) -> Vec<Point2> {
         1
     };
 
-    dbg!(len);
-    let index = (len * 3/ 8) - 1; // TODO, prevent underflow
-    dbg!(index);
-
-    let center = point_buffer[index]; // This is only approximately the center
+    let index = (len * 3/ 8) - 1;
+    let center = point_buffer.get(index).cloned().unwrap_or_default();
 
     let point_buffer: Vec<Point2> = point_buffer
         .into_iter()
@@ -117,7 +122,7 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
             }
 
         }
-        _ => println!("{:?}", event)
+        _ => {}
     }
 }
 
@@ -130,10 +135,10 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
 
     let len = model.point_buffer.len();
     let colors = vec![
-        (0.0, RED),
-        (25.0, GREEN),
-        (75.0, BLUE),
-        (100.0, RED)
+        (0.0, Rgba::new_u8(0xff, 0, 0, 0xff)),
+        (25.0, Rgba::new_u8(0, 0xff, 0, 0xff)),
+        (75.0, Rgba::new_u8(0, 0, 0xff, 0xff)),
+        (100.0, Rgba::new_u8(0xff, 0, 0, 0xff)),
     ];
     let skip = model.frame_counter.0 % len;
     let skip = match model.iteration {
@@ -144,7 +149,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
         4 => skip * 75,
         5 => skip * 400,
         6 => skip * 1000,
-        7 => skip * 300,
+        7 => skip * 3000,
         _ => skip
     };
 

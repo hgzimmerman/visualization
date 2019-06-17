@@ -4,7 +4,7 @@ use nannou::geom::Point2;
 /// https://wikivisually.com/wiki/Gosper_curve
 ///
 /// Alphabet for the grammar.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Gosper {
     A,
     B,
