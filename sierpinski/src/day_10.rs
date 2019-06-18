@@ -34,7 +34,6 @@ fn build_point_buffer(iterations: usize, line_length: f32) -> Vec<Point2> {
     let axiom = vec![F, Minus, G, Minus, G];
     let lsystem = LSystem::new(axiom).iterate_n(iterations);
 
-    dbg!(iterations);
     let origin = Point2 {
         x: -(2.pow(iterations as u32) as f32 / 2.0) * line_length,
         y: -(2.pow(iterations as u32) as f32 * 3.0.sqrt() / 2.0) * line_length / 2.0
@@ -43,22 +42,6 @@ fn build_point_buffer(iterations: usize, line_length: f32) -> Vec<Point2> {
     let point_buffer: Vec<Point2> = lsystem
         .reify_iter(std::f32::consts::FRAC_PI_3 * 2.0, line_length, origin)
         .collect();
-//
-//    let len = if point_buffer.len() > 0 {
-//        point_buffer.len()
-//    } else {
-//        1
-//    };
-//
-//    let index = (len * 3/ 8) - 1;
-//    let center = point_buffer.get(index).cloned().unwrap_or_default();
-//
-//    let point_buffer: Vec<Point2> = point_buffer
-//        .into_iter()
-//        .map(|pt| {
-//            pt - center
-//        })
-//        .collect();
 
     point_buffer
 }
@@ -107,7 +90,7 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
         WindowEvent::KeyPressed(key) => {
             match key {
                 Key::Right => {
-                    if model.iteration < 7 {
+                    if model.iteration < 10 {
                         model.iteration += 1;
                     }
                     model.point_buffer = build_point_buffer(model.iteration,INITIAL_LINE_LENGTH)
