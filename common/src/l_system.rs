@@ -44,6 +44,10 @@ where
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.working_set.len()
+    }
+
     /// An iterator over the symbols.
     pub fn iter(&self) -> impl Iterator<Item=&T> {
         self.working_set.iter()
