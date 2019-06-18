@@ -21,7 +21,6 @@ pub struct Model {
 
 const ITERATION: usize = 3;
 const INITIAL_THICKNESS: f32 = 2.0;
-const INITIAL_LINE_LENGTH: f32 = 8.0;
 
 
 /// Uses an L-system + Gosper grammar to construct a list of items.
@@ -29,10 +28,12 @@ const INITIAL_LINE_LENGTH: f32 = 8.0;
 /// the path is not centered on the screen.
 ///
 /// So an approximate spacial center of the path is found, and the points are all then offset from that.
-fn build_point_buffer(iterations: usize, line_length: f32) -> Vec<Point2> {
+fn build_point_buffer(iterations: usize) -> Vec<Point2> {
     use Sierpinski::*;
     let axiom = vec![F, Minus, G, Minus, G];
     let lsystem = LSystem::new(axiom).iterate_n(iterations);
+
+    let line_length = 550.0 / 2.pow(iterations as u32) as f32;
 
     let origin = Point2 {
         x: -(2.pow(iterations as u32) as f32 / 2.0) * line_length,
@@ -59,7 +60,7 @@ impl Model {
             .build()
             .unwrap();
 
-        let point_buffer = build_point_buffer(ITERATION, INITIAL_LINE_LENGTH);
+        let point_buffer = build_point_buffer(ITERATION);
 
         Model {
             _window,
@@ -93,13 +94,13 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
                     if model.iteration < 10 {
                         model.iteration += 1;
                     }
-                    model.point_buffer = build_point_buffer(model.iteration,INITIAL_LINE_LENGTH)
+                    model.point_buffer = build_point_buffer(model.iteration)
                 },
                 Key::Left => {
                     if model.iteration > 0 {
                         model.iteration -= 1;
                     }
-                    model.point_buffer = build_point_buffer(model.iteration,INITIAL_LINE_LENGTH)
+                    model.point_buffer = build_point_buffer(model.iteration)
                 }
                 Key::Up => {
                     model.thickness += 1.0;
