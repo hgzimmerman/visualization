@@ -25,7 +25,7 @@ impl Expandable for Sierpinski {
         }
     }
 
-    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Self::Item
+    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Option<Self::Item>
     {
         use Sierpinski::*;
         let cpy = current_pt.clone();
@@ -35,7 +35,11 @@ impl Expandable for Sierpinski {
             Plus => *current_angle -= angle_step,
             Minus => *current_angle += angle_step,
         };
-        cpy
+
+        match v {
+            F | G => Some(cpy),
+            Plus | Minus => None
+        }
     }
 }
 

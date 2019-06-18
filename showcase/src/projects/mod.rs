@@ -13,7 +13,10 @@
 //! * Circle packing: https://www.instagram.com/p/BTsZ6F9ljZT/    -- day 3
 //! * Wrapping moving objects around each side
 //! * Boids again
-//! * L System - based fractal generation
+//! * L System - based fractal generation                       -- Day 9, 10, 11
+//! * Tiling
+//!     * Tile the koch curve (Turn into a polygon, 2 different iterations (same line length though), copy them at offsets)
+//!         -- actually, I only need one size - if tiled correctly, the negative space will be the background.
 
 pub mod day_1;
 pub mod day_2;

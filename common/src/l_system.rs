@@ -1,4 +1,3 @@
-use apply::Apply;
 
 /// Lindenmayer system
 #[derive(Clone, Debug)]
@@ -29,7 +28,7 @@ where
     }
 
     pub fn iterate_n(self, n: usize) -> Self {
-        let mut iter: Box<Iterator<Item=T>> = Box::new(self.working_set.into_iter());
+        let iter: Box<Iterator<Item=T>> = Box::new(self.working_set.into_iter());
         // TODO I would love a better way to accomplish this, but Boxing is a quick way to erase type info so that I can prevent multiple collections.
         let i = (0..n)
             .fold( iter, |i: Box<Iterator<Item=T>>, _| {
@@ -74,7 +73,9 @@ pub trait Expandable: Sized {
 
     // TODO, consider removing the angle_step. It really isn't a meaningful parameter. as changing it breaks the intended production.
     // TODO Reify is a shitty word for what this does
-    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Self::Item;
+
+    // TODO THIS MUST RETURN AN Option instead of the T. It creates a significant overabundance of duplicate points otherwise.
+    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Option<Self::Item>;
 }
 
 
@@ -102,15 +103,24 @@ impl <'a, T, U, F> ReificationIterator<'a, T, U, F>
 
 impl <'a, T: 'a, U, F> Iterator for ReificationIterator<'a, T, U, F>
 where
-    F: Fn(&T, &mut U, &mut f32) -> U,
+    F: Fn(&T, &mut U, &mut f32) -> Option<U> + Clone,
 {
     type Item = U;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner
-            .next()
-            .map(|t: &T| {
-                (self.f)(t, &mut self.current_pt, &mut self.current_angle)
+        // Avoid borrowing nonsense.
+        let f = self.f.clone();
+        let current_pt = &mut self.current_pt;
+        let current_angle = &mut self.current_angle;
+
+        // Iterate until one of the alphabet elements produces a Some variant.
+        (&mut self.inner)
+            .map(|t| {
+                (f)(t, current_pt, current_angle)
             })
+            .skip_while(|x| x.is_none() )
+            .map(Option::unwrap)
+            .next()
+
     }
 }

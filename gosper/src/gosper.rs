@@ -26,7 +26,7 @@ impl Expandable for Gosper {
         }
     }
 
-    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Self::Item
+    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Option<Self::Item>
     {
         use Gosper::*;
         let cpy = current_pt.clone();
@@ -36,7 +36,11 @@ impl Expandable for Gosper {
             Plus => *current_angle += angle_step,
             Minus => *current_angle -= angle_step,
         };
-        cpy
+
+        match v {
+            A | B => Some(cpy),
+            Plus | Minus => None
+        }
     }
 }
 

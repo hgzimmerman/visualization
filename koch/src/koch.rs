@@ -23,16 +23,24 @@ impl Expandable for Koch {
         }
     }
 
-    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Self::Item
+    fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Option<Self::Item>
     {
         use Koch::*;
         let cpy = current_pt.clone();
         match v {
-            F => *current_pt = line_to(*current_pt, *current_angle, line_length),
-            Plus => *current_angle += angle_step,
-            Minus => *current_angle -= angle_step,
-        };
-        cpy
+            F => {
+                *current_pt = line_to(*current_pt, *current_angle, line_length);
+                Some(cpy)
+            },
+            Plus => {
+                *current_angle += angle_step;
+                None
+            },
+            Minus => {
+                *current_angle -= angle_step;
+                None
+            },
+        }
     }
 }
 
