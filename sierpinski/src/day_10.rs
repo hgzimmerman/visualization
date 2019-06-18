@@ -5,7 +5,7 @@
 use nannou::prelude::*;
 use std::num::Wrapping;
 use common::l_system::{LSystem};
-use crate::gosper::Gosper;
+use crate::sierpinski::Sierpinski;
 
 pub struct Model {
     _window: WindowId,
@@ -19,7 +19,7 @@ pub struct Model {
 }
 
 
-const ITERATION: usize = 4;
+const ITERATION: usize = 3;
 const INITIAL_THICKNESS: f32 = 2.0;
 const INITIAL_LINE_LENGTH: f32 = 8.0;
 
@@ -29,27 +29,36 @@ const INITIAL_LINE_LENGTH: f32 = 8.0;
 /// the path is not centered on the screen.
 ///
 /// So an approximate spacial center of the path is found, and the points are all then offset from that.
-fn build_point_buffer(iterations: usize, line_length: f32,) -> Vec<Point2> {
-    let lsystem = LSystem::new(vec![Gosper::A]).iterate_n(iterations);
-    let point_buffer: Vec<Point2> = lsystem
-        .reify_iter(std::f32::consts::FRAC_PI_3, line_length, Point2::default())
-        .collect();
+fn build_point_buffer(iterations: usize, line_length: f32) -> Vec<Point2> {
+    use Sierpinski::*;
+    let axiom = vec![F, Minus, G, Minus, G];
+    let lsystem = LSystem::new(axiom).iterate_n(iterations);
 
-    let len = if point_buffer.len() > 0 {
-        point_buffer.len()
-    } else {
-        1
+    dbg!(iterations);
+    let origin = Point2 {
+        x: -(2.pow(iterations as u32) as f32 / 2.0) * line_length,
+        y: -(2.pow(iterations as u32) as f32 * 3.0.sqrt() / 2.0) * line_length / 2.0
     };
 
-    let index = (len * 3/ 8) - 1;
-    let center = point_buffer.get(index).cloned().unwrap_or_default();
-
-    let point_buffer: Vec<Point2> = point_buffer
-        .into_iter()
-        .map(|pt| {
-            pt - center
-        })
+    let point_buffer: Vec<Point2> = lsystem
+        .reify_iter(std::f32::consts::FRAC_PI_3 * 2.0, line_length, origin)
         .collect();
+//
+//    let len = if point_buffer.len() > 0 {
+//        point_buffer.len()
+//    } else {
+//        1
+//    };
+//
+//    let index = (len * 3/ 8) - 1;
+//    let center = point_buffer.get(index).cloned().unwrap_or_default();
+//
+//    let point_buffer: Vec<Point2> = point_buffer
+//        .into_iter()
+//        .map(|pt| {
+//            pt - center
+//        })
+//        .collect();
 
     point_buffer
 }
@@ -133,6 +142,7 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
 
     let half_thickness: f32 = model.thickness / 2.0;
 
+
     let len = model.point_buffer.len();
     let colors = vec![
         (0.0, Rgba::new_u8(0xff, 0, 0, 0xff)),
@@ -142,20 +152,19 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     ];
     let skip = model.frame_counter.0 % len;
     let skip = match model.iteration {
-        0 => skip,
-        1 => skip,
-        2 => skip * 5,
-        3 => skip * 20,
-        4 => skip * 75,
-        5 => skip * 400,
-        6 => skip * 1000,
-        7 => skip * 3000,
+        3 => skip * 3,
+        4 => skip * 3,
+        5 => skip * 3,
+        6 => skip * 9,
+        7 => skip * 27,
+        8 => skip * 81,
+        9 => skip * 243,
         _ => skip
     };
 
     model.point_buffer
         .windows(2)
-        .zip(nannou::color::Gradient::with_domain(colors)
+        .zip(nannou::color::Gradient::with_domain(colors.clone())
             .take(len)
             .cycle()
             .skip(skip)
@@ -174,6 +183,21 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
                 .radius(half_thickness);
         });
 
+    let last_color = nannou::color::Gradient::with_domain(colors)
+        .take(len)
+        .cycle()
+        .skip(skip)
+        .next().unwrap();
+
+    draw.line()
+        .start(model.point_buffer[0])
+        .end(model.point_buffer[model.point_buffer.len() - 1])
+        .thickness(model.thickness)
+        .color(last_color);
+    draw.ellipse()
+        .xy(model.point_buffer[0])
+        .color(last_color)
+        .radius(half_thickness);
 
     // Write to the window frame.
     draw.to_frame(app, &frame).unwrap();

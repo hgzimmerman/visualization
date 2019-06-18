@@ -4,7 +4,7 @@ use apply::Apply;
 #[derive(Clone, Debug)]
 pub struct LSystem<T>
 {
-    working_set: Vec<T>,
+    working_set: Vec<T>, // TODO add angle here?
 }
 
 impl <T> LSystem<T>
@@ -60,6 +60,7 @@ where
     }
 }
 
+// TODO maybe rename to Grammar
 pub trait Expandable: Sized {
     /// This is the type of point that will be used.
     type Item;
@@ -67,6 +68,7 @@ pub trait Expandable: Sized {
     /// Rules used to expand the set of symbols to its next iteration.
     fn production_rules(self) -> Vec<Self>;
 
+    // TODO, consider removing the angle_step. It really isn't a meaningful parameter. as changing it breaks the intended production.
     // TODO Reify is a shitty word for what this does
     fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Self::Item;
 }
@@ -78,7 +80,7 @@ pub struct ReificationIterator<'a, T, U,  F> {
     inner: std::slice::Iter<'a, T>,
     f: F,
     current_pt: U,
-    current_angle: f32, // TODO this is fine for 2D, but I probably need another structure for representing higher-dimension angles.
+    current_angle: f32, // TODO this is fine for 2D, but I probably need another structure for representing higher-dimension angles. Add yet another Type param
 }
 
 impl <'a, T, U, F> ReificationIterator<'a, T, U, F>
