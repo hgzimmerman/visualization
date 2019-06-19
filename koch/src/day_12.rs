@@ -15,20 +15,13 @@ pub struct Model {
     /// Buffer containing all of the lines needed to draw the complete curve for the current iteration.
     point_buffer: Vec<Point2>,
     iteration: usize,
-    thickness: f32,
 
 }
 
 
 const ITERATION: usize = 3;
-const INITIAL_THICKNESS: f32 = 2.0;
 
 
-/// Uses an L-system + Gosper grammar to construct a list of items.
-/// Since the l system is reified with points starting at the center,
-/// the path is not centered on the screen.
-///
-/// So an approximate spacial center of the path is found, and the points are all then offset from that.
 fn build_point_buffer(iterations: usize) -> Vec<Point2> {
     use Koch::*;
     let axiom = vec![F, Minus, Minus, F, Minus, Minus, F];
@@ -69,7 +62,6 @@ impl Model {
             frame_counter: Wrapping(0),
             point_buffer,
             iteration: ITERATION,
-            thickness: INITIAL_THICKNESS,
         }
     }
 
@@ -102,12 +94,6 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
                         model.iteration -= 1;
                     }
                     model.point_buffer = build_point_buffer(model.iteration)
-                }
-                Key::Up => {
-                    model.thickness += 1.0;
-                }
-                Key::Down => {
-                    model.thickness -= 1.0;
                 }
                 Key::Q => {
                     std::process::exit(0); // Q -> exit program
@@ -145,10 +131,10 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
                 }).collect::<Vec<_>>()
         })
         .for_each(|snowflake| {
-            paint_polygon(&draw, &snowflake, ORANGE);
+            paint_koch(&draw, &snowflake, ORANGE);
         });
 
-        paint_polygon(&draw, &model.point_buffer, ORANGE);
+        paint_koch(&draw, &model.point_buffer, ORANGE);
 
 
 
@@ -159,14 +145,18 @@ fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     frame
 }
 
-fn paint_polygon(draw: &Draw, pts: &[Point2], color: Rgba) {
+/// Because the Koch snowflake is concave, a vector of points can't just be supplied.
+///
+/// Instead, this function recursively (depth-first) paints the triangles that comprise the snowflake
+/// from largest to smallest.
+fn paint_koch(draw: &Draw, pts: &[Point2], color: Rgba) {
     let skip = pts.len() / 3;
 
     draw.polygon()
         .points([pts[0], pts[skip], pts[2*skip]].iter().cloned())
         .color(color);
 
-    fn paint_polygon_inner(draw: &Draw, pts: &[Point2], color: Rgba) {
+    fn paint_koch_inner(draw: &Draw, pts: &[Point2], color: Rgba) {
         let skip = pts.len() / 4;
 
         draw.polygon()
@@ -178,10 +168,10 @@ fn paint_polygon(draw: &Draw, pts: &[Point2], color: Rgba) {
         let (sec3, sec4) = temp2.split_at(pts.len()/4);
 
         if skip >= 4 {
-            paint_polygon_inner(draw, sec1, color);
-            paint_polygon_inner(draw, sec2, color);
-            paint_polygon_inner(draw, sec3, color);
-            paint_polygon_inner(draw, sec4, color);
+            paint_koch_inner(draw, sec1, color);
+            paint_koch_inner(draw, sec2, color);
+            paint_koch_inner(draw, sec3, color);
+            paint_koch_inner(draw, sec4, color);
         }
     }
 
@@ -189,9 +179,9 @@ fn paint_polygon(draw: &Draw, pts: &[Point2], color: Rgba) {
     let (sec2, sec3) = sec2.split_at(skip);
 
     if skip >= 4 {
-        paint_polygon_inner(draw, sec1, color);
-        paint_polygon_inner(draw, sec2, color);
-        paint_polygon_inner(draw, sec3, color);
+        paint_koch_inner(draw, sec1, color);
+        paint_koch_inner(draw, sec2, color);
+        paint_koch_inner(draw, sec3, color);
     }
 
 }

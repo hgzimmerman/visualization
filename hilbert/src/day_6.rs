@@ -108,6 +108,7 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
 fn view(app: &App, model: &Model, frame: Frame) -> Frame {
     let draw = app.draw();
 
+    // TODO don't clear on each redraw. Instead select a window of points to draw each time, then clear once the whole path is drawn.
     frame.clear(WHITE);
 
     const THICKNESS: f32 = 6.0;

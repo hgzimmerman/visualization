@@ -23,11 +23,6 @@ const ITERATION: usize = 3;
 const INITIAL_THICKNESS: f32 = 2.0;
 
 
-/// Uses an L-system + Gosper grammar to construct a list of items.
-/// Since the l system is reified with points starting at the center,
-/// the path is not centered on the screen.
-///
-/// So an approximate spacial center of the path is found, and the points are all then offset from that.
 fn build_point_buffer(iterations: usize) -> Vec<Point2> {
     use Koch::*;
     let axiom = vec![F, Minus, Minus, F, Minus, Minus, F];
