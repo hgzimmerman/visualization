@@ -1,4 +1,4 @@
-use common::l_system::Expandable;
+use common::l_system::Grammar;
 use nannou::geom::Point2;
 
 ///
@@ -11,7 +11,7 @@ pub enum Koch {
 }
 
 
-impl Expandable for Koch {
+impl Grammar for Koch {
     type Item = Point2;
 
     fn production_rules(self) -> Vec<Self> {
@@ -28,18 +28,13 @@ impl Expandable for Koch {
         use Koch::*;
         let cpy = current_pt.clone();
         match v {
-            F => {
-                *current_pt = line_to(*current_pt, *current_angle, line_length);
-                Some(cpy)
-            },
-            Plus => {
-                *current_angle += angle_step;
-                None
-            },
-            Minus => {
-                *current_angle -= angle_step;
-                None
-            },
+            F => *current_pt = line_to(*current_pt, *current_angle, line_length),
+            Plus => *current_angle += angle_step,
+            Minus => *current_angle -= angle_step,
+        };
+        match v {
+            F => Some(cpy),
+            Plus | Minus => None
         }
     }
 }

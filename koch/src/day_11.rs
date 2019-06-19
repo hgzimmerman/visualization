@@ -37,7 +37,7 @@ fn build_point_buffer(iterations: usize) -> Vec<Point2> {
 
     let origin = Point2 {
         x: -(1.5 * 3.pow((iterations - 1) as u32) as f32) * line_length,
-        y: ((3.0.sqrt()/2.0) * 3.pow((iterations - 1) as u32) as f32) * line_length,
+        y: (((3.0.sqrt() / 2.0) * 3.pow((iterations - 1) as u32) as f32) * line_length) as f32,
     };
 
 
@@ -54,7 +54,7 @@ impl Model {
         let _window = app
             .new_window()
             .with_dimensions(512, 512)
-            .with_title("day 9")
+            .with_title("day 11")
             .view(view) // The function that will be called for presenting graphics to a frame.
             .event(event) // The function that will be called when the window receives events.
             .resized(on_resize)

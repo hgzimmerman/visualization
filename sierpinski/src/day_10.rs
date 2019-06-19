@@ -15,7 +15,6 @@ pub struct Model {
     point_buffer: Vec<Point2>,
     iteration: usize,
     thickness: f32,
-
 }
 
 
@@ -53,7 +52,7 @@ impl Model {
         let _window = app
             .new_window()
             .with_dimensions(512, 512)
-            .with_title("day 9")
+            .with_title("day 11")
             .view(view) // The function that will be called for presenting graphics to a frame.
             .event(event) // The function that will be called when the window receives events.
             .resized(on_resize)

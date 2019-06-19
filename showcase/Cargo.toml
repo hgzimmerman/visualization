@@ -10,3 +10,6 @@ rand = "0.6.5"
 clap = "2.33.0"
 common = {path="../common"}
 hilbert = {path="../hilbert"}
+gosper = {path="../gosper"}
+sierpinski = {path ="../sierpinski"}
+koch = {path = "../koch"}

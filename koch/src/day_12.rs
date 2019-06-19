@@ -54,9 +54,9 @@ impl Model {
         let _window = app
             .new_window()
             .with_dimensions(512, 512)
-            .with_title("day 9")
-            .view(view) // The function that will be called for presenting graphics to a frame.
-            .event(event) // The function that will be called when the window receives events.
+            .with_title("day 12")
+            .view(view)
+            .event(event)
             .resized(on_resize)
             .build()
             .unwrap();

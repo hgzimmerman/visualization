@@ -1,4 +1,4 @@
-use common::l_system::Expandable;
+use common::l_system::Grammar;
 use nannou::geom::Point2;
 
 /// https://wikivisually.com/wiki/Gosper_curve
@@ -13,7 +13,7 @@ pub enum Gosper {
 }
 
 
-impl Expandable for Gosper {
+impl Grammar for Gosper {
     type Item = Point2;
 
     fn production_rules(self) -> Vec<Self> {

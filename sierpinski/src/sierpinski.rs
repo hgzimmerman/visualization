@@ -1,4 +1,4 @@
-use common::l_system::Expandable;
+use common::l_system::Grammar;
 use nannou::geom::Point2;
 
 ///
@@ -12,7 +12,7 @@ pub enum Sierpinski {
 }
 
 
-impl Expandable for Sierpinski {
+impl Grammar for Sierpinski {
     type Item = Point2;
 
     fn production_rules(self) -> Vec<Self> {

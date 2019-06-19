@@ -80,6 +80,26 @@ fn select(i: usize) {
                 .update(day_8::Model::update)
                 .run();
         }
+        9 => {
+            nannou::app(gosper::day_9::Model::init)
+                .update(gosper::day_9::Model::update)
+                .run();
+        }
+        10 => {
+            nannou::app(sierpinski::day_10::Model::init)
+                .update(sierpinski::day_10::Model::update)
+                .run();
+        }
+        11 => {
+            nannou::app(koch::day_11::Model::init)
+                .update(koch::day_11::Model::update)
+                .run();
+        }
+        12 => {
+            nannou::app(koch::day_12::Model::init)
+                .update(koch::day_12::Model::update)
+                .run();
+        }
         _ => panic!("Not implemented")
     }
 }
