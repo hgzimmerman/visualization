@@ -1,5 +1,6 @@
 use common::l_system::Grammar;
 use nannou::geom::Point2;
+use common::point_ext::line_to;
 
 ///
 /// Angle should be 90 deg
@@ -44,12 +45,3 @@ impl Grammar for Peano {
     }
 }
 
-
-/// Produces a new point from the current one
-#[inline]
-fn line_to(pt: Point2, angle: f32, line_length: f32) -> Point2 {
-    Point2 {
-        x: pt.x + line_length * angle.cos(),
-        y: pt.y + line_length * angle.sin()
-    }
-}

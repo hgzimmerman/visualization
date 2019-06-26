@@ -1,24 +1,24 @@
 use common::l_system::Grammar;
-use nannou::geom::Point2;
 use common::point_ext::line_to;
+use nannou::geom::Point2;
 
 ///
 /// Angle should be 120 deg
 #[derive(Clone, Copy, Debug)]
-pub enum Koch {
+pub enum TerDragon {
     F,
     Plus,
     Minus
 }
 
 
-impl Grammar for Koch {
+impl Grammar for TerDragon {
     type Item = Point2;
 
     fn production_rules(self) -> Vec<Self> {
-        use Koch::*;
+        use TerDragon::*;
         match self {
-            F => vec![F, Plus, F, Minus, Minus, F, Plus, F],
+            F => vec![F, Plus, F, Minus, F],
             Plus => vec![Plus],
             Minus => vec![Minus]
         }
@@ -26,7 +26,7 @@ impl Grammar for Koch {
 
     fn reify(v: &Self, current_pt: &mut Self::Item, current_angle: &mut f32, angle_step: f32, line_length: f32) -> Option<Self::Item>
     {
-        use Koch::*;
+        use TerDragon::*;
         let cpy = current_pt.clone();
         match v {
             F => *current_pt = line_to(*current_pt, *current_angle, line_length),
@@ -39,4 +39,5 @@ impl Grammar for Koch {
         }
     }
 }
+
 

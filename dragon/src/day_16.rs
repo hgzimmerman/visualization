@@ -1,9 +1,9 @@
-//! Twin dragon
+//! Terdragon
 
 use nannou::prelude::*;
 use std::num::Wrapping;
 use common::l_system::{LSystem};
-use crate::dragon::Dragon;
+use crate::terdragon::TerDragon;
 use common::collinear::{condense_collinear};
 use common::draw::{colored_lines_no_corners, rainbow};
 
@@ -19,23 +19,23 @@ pub struct Model {
 
 
 const ITERATION: usize = 4;
-const ITERATION_LIMIT: usize = 18;
-const TITLE: &str = "day 15";
+const ITERATION_LIMIT: usize = 19;
+const TITLE: &str = "day 16";
 const INITIAL_THICKNESS: f32 = 1.0;
 const THICKNESS_STEP: f32 = 0.25;
 
 
 fn build_point_buffer(iterations: usize) -> Vec<Point2> {
-    use Dragon::*;
-    let axiom = vec![F, X, Plus, F, X, Plus,];
+    use TerDragon::*;
+    let axiom = vec![F];
     let lsystem = LSystem::new(axiom).iterate_n(iterations);
-    let line_length: f32 = 200.0 / (2.0 * (iterations as f32).powf(1.7));
+    let line_length: f32 = 400.0 / (2.0 * (iterations as f32).powf(2.2));
 
 
     let origin = Point2::default();
 
     let point_buffer: Vec<Point2> = lsystem
-        .reify_iter(std::f32::consts::FRAC_PI_2 , line_length, origin)
+        .reify_iter(2.0 * std::f32::consts::FRAC_PI_3 , line_length, origin)
         .collect();
 
     let point_buffer = condense_collinear(point_buffer);
