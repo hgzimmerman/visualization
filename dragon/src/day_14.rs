@@ -18,8 +18,11 @@ pub struct Model {
 }
 
 
-const ITERATION: usize = 3;
+const ITERATION: usize = 4;
 const ITERATION_LIMIT: usize = 19;
+const TITLE: &str = "day 14";
+const INITIAL_THICKNESS: f32 = 1.0;
+const THICKNESS_STEP: f32 = 0.25;
 
 
 fn build_point_buffer(iterations: usize) -> Vec<Point2> {
@@ -29,13 +32,11 @@ fn build_point_buffer(iterations: usize) -> Vec<Point2> {
     let line_length: f32 = 200.0 / (2.0 * (iterations as f32).powf(1.6));
 
 
-    
     let origin = Point2::default();
 
     let point_buffer: Vec<Point2> = lsystem
         .reify_iter(std::f32::consts::FRAC_PI_2 , line_length, origin)
         .collect();
-
 
     let point_buffer = condense_collinear(point_buffer);
 
@@ -51,7 +52,7 @@ impl Model {
         let _window = app
             .new_window()
             .with_dimensions(512, 512)
-            .with_title("day 13")
+            .with_title(TITLE)
             .view(view)
             .event(event)
             .resized(on_resize)
@@ -66,7 +67,7 @@ impl Model {
             frame_counter: Wrapping(0),
             point_buffer,
             iteration: ITERATION,
-            thickness: 1.0
+            thickness: INITIAL_THICKNESS
         }
     }
 
@@ -101,10 +102,10 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
                     model.point_buffer = build_point_buffer(model.iteration)
                 }
                 Key::Up => {
-                    model.thickness += 1.0;
+                    model.thickness += THICKNESS_STEP;
                 }
                 Key::Down => {
-                    model.thickness -= 1.0;
+                    model.thickness -= THICKNESS_STEP;
                 }
                 Key::Q => {
                     std::process::exit(0); // Q -> exit program
