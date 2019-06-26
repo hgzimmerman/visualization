@@ -1,5 +1,4 @@
-/// Draws a gasper curve.
-///
+/// Draws a tiled set of kosh snowflakes and anti-snowflakes.
 
 
 use nannou::prelude::*;

@@ -1,4 +1,4 @@
 [workspace]
-members = ["common", "showcase", "hilbert", "gosper", "sierpinski", "koch"]
+members = ["common", "showcase", "hilbert", "gosper", "sierpinski", "koch", "peano"]
 
 
