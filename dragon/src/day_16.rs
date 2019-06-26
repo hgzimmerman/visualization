@@ -29,7 +29,7 @@ fn build_point_buffer(iterations: usize) -> Vec<Point2> {
     use TerDragon::*;
     let axiom = vec![F];
     let lsystem = LSystem::new(axiom).iterate_n(iterations);
-    let line_length: f32 = 400.0 / (2.0 * (iterations as f32).powf(2.2));
+    let line_length: f32 = 500.0 / (2.0 * (iterations as f32).powf(2.2));
 
 
     let origin = Point2::default();

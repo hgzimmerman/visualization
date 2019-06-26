@@ -128,3 +128,35 @@ impl Iterator for HilbertIterator {
     }
 }
 
+pub struct RegularHilbertIterator {
+    iteration: usize,
+    d: usize
+}
+
+impl RegularHilbertIterator {
+    #[inline]
+    pub fn new_with_iteration(iteration: usize) -> Self {
+        RegularHilbertIterator {
+            iteration,
+            d: 0
+        }
+    }
+    pub fn d_max(&self) -> usize {
+        (4_usize.pow((self.iteration) as u32) ) - 1
+    }
+    pub fn n(&self) -> usize {
+        2_usize.pow(self.iteration as u32)
+    }
+}
+
+
+impl Iterator for RegularHilbertIterator {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let n = self.n();
+        let ret = Some(d2xy(n, self.d));
+        self.d += 1;
+        ret
+    }
+}
